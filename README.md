@@ -1,206 +1,243 @@
-# PictureSelector  
-最近项目中用到多图选择上传的需求，考虑到android机型众多问题就自己花时间写了一个，测试了大概60款机型，出现过一些问题也都一一修复了，基本上稳定了特分享出来，界面UI也是商用级的开发者不用在做太多修改了，界面高度自定义，可以设置符合你项目主色调的风格，集成完成后就可以拿来用。
-顺便感谢一下，大家对我的支持~  
+# PictureSelector 2.0  
+   A Picture Selector for Android platform, support from the album to obtain pictures, video, audio & photo, support crop (single picture or multi-picture crop), compression, theme custom configuration and other functions, support dynamic access & adapt to Android 5.0+ system of open source picture selection framework。<br>
 
-******那些遇到拍照闪退问题的同学，请记得看清下面适配6.0的配置~******
+[中文版🇨🇳](README_CN.md) 
 
-重要的事情说三遍记得添加权限
+[Download APK](https://github.com/LuckSiege/PictureSelector/raw/master/app/demo/app_2021-05-18_070821_v2.7.0-rc04.apk)<br>
 
-  < uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  
-  < uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-  
-  < uses-permission android:name="android.permission.CAMERA" />
+[![](https://jitpack.io/v/LuckSiege/PictureSelector.svg)](https://jitpack.io/#LuckSiege/PictureSelector)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg)](https://github.com/LuckSiege)
+[![CSDN](https://img.shields.io/twitter/url/http/blog.csdn.net/luck_mw.svg?style=social)](http://blog.csdn.net/luck_mw)
+[![I](https://img.shields.io/github/issues/LuckSiege/PictureSelector.svg)](https://github.com/LuckSiege/PictureSelector/issues)
+[![Star](https://img.shields.io/github/stars/LuckSiege/PictureSelector.svg)](https://github.com/LuckSiege/PictureSelector)
 
-功能特点：  
+## Directory
+-[Latest Version v2.7.0-rc03](#Version)<br>
+-[Update Log](https://github.com/LuckSiege/PictureSelector/releases/tag/v2.7.0-rc03)<br>
+-[Style Configuration-Xml](https://github.com/LuckSiege/PictureSelector/wiki/%E8%87%AA%E5%AE%9A%E4%B9%89%E4%B8%BB%E9%A2%98-Xml%E6%96%B9%E5%BC%8F)<br>
+-[Style Configuration-Code](https://github.com/LuckSiege/PictureSelector/wiki/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8A%A8%E6%80%81%E4%B8%BB%E9%A2%98(%E5%8C%85%E5%90%AB%E8%A3%81%E5%89%AA%E3%80%81%E7%9B%B8%E5%86%8C%E5%90%AF%E5%8A%A8%E5%8A%A8%E7%94%BB)-Code%E6%96%B9%E5%BC%8F)<br>
+-[Demo Effect](#Effect)<br>
+-[Method Of Use](https://github.com/LuckSiege/PictureSelector/wiki/%E9%9B%86%E6%88%90%E6%96%B9%E5%BC%8F)<br>
+-[Api Explain](https://github.com/LuckSiege/PictureSelector/wiki/PictureSelector-Api)<br>
+-[Open Photo Album](#Photo)<br>
+-[Open Camera](#Camera)<br>
+-[Custom Camera](#CustomCamera)<br>
+-[Results Callback](https://github.com/LuckSiege/PictureSelector/wiki/Result-Callback)<br>
+-[Cache Clear](#CacheClear)<br>
+-[Confusion](#Confusion)<br>
+-[License](#License)<br>
 
-1.适配android7.0系统    
+## Version
 
-2.解决部分机型裁剪闪退问题
+```sh
+implementation 'io.github.lucksiege:pictureselector:v2.7.0-rc03'
+```
 
-3.解决图片过大oom闪退问题
+## Photo
+Quick call, more functions [More](https://github.com/LuckSiege/PictureSelector/wiki/PictureSelector-Api)
 
-4.动态获取系统权限，避免闪退  
+1、onActivityResult
+```sh 
+ PictureSelector.create(this)
+   .openGallery(PictureMimeType.ofImage())
+   .loadImageEngine(GlideEngine.createGlideEngine()) // Please refer to the Demo GlideEngine.java
+   .forResult(PictureConfig.CHOOSE_REQUEST);
+   
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case PictureConfig.CHOOSE_REQUEST:
+                    // onResult Callback
+                    List<LocalMedia> selectList = PictureSelector.obtainMultipleResult(data);
+                    break;
+                default:
+                    break;
+            }            
+        }
+```
 
-5.支持相片or视频的单选和多选  
+2、Callback
+```sh
+ PictureSelector.create(this)
+   .openGallery(PictureMimeType.ofAll())
+   .loadImageEngine(GlideEngine.createGlideEngine())
+   .forResult(new OnResultCallbackListener<LocalMedia>() {
+       @Override
+       public void onResult(List<LocalMedia> result) {
+            // onResult Callback
+       }
 
-6.支持裁剪比例设置，如常用的  1:1、3：4、3:2、16:9 默认为图片大小
+       @Override
+       public void onCancel() {
+            // onCancel Callback
+       }
+     });  
+```
 
-7.支持视频预览  
+## Camera
+Quick Use, separately start the photo or video according to PictureMimeType automatic recognition [More](https://github.com/LuckSiege/PictureSelector/wiki/PictureSelector-Api)
 
-8.支持gif图片  
+onActivityResult
+```sh
+ PictureSelector.create(this)
+   .openCamera(PictureMimeType.ofImage())
+   .loadImageEngine(GlideEngine.createGlideEngine()) // Please refer to the Demo GlideEngine.java
+   .forResult(PictureConfig.REQUEST_CAMERA);  
+   
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case PictureConfig.REQUEST_CAMERA:
+                    // onResult Callback
+                    List<LocalMedia> selectList = PictureSelector.obtainMultipleResult(data);
+                    break;
+                default:
+                    break;
+            }            
+        }
+```
 
-9.支持一些常用场景设置：如:是否裁剪、是否预览图片、是否显示相机等  
+Callback
+```sh
+PictureSelector.create(this)
+   .openCamera(PictureMimeType.ofImage())
+   .loadImageEngine(GlideEngine.createGlideEngine())
+   .forResult(new OnResultCallbackListener<LocalMedia>() {
+       @Override
+       public void onResult(List<LocalMedia> result) {
+            // onResult Callback
+       }
 
-10.新增自定义主题设置  
+       @Override
+       public void onCancel() {
+            // onCancel Callback
+       }
+     });
+```
 
-11.新增图片勾选样式设置  
+## CustomCamera
+If you need to use a custom camera you need to set up
+```
+.isUseCustomCamera(true);
+``` 
+Application implementing interface
+```sh
+ public class App extends Application implements CameraXConfig.Provider {
+    private static final String TAG = App.class.getSimpleName();
 
-12.新增图片裁剪宽高设置  
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
 
-13.新增图片压缩处理  
+    @NonNull
+    @Override
+    public CameraXConfig getCameraXConfig() {
+        return Camera2Config.defaultConfig();
+    }
+ }
+```
 
-14.新增录视频最大时间设置  
-
-15.新增视频清晰度设置  
-
-16.新增QQ选择风格，带数字效果  
-
-17.新增自定义 文字颜色 背景色让风格和项目更搭配  
-
-18.新增多图裁剪功能
-
-19.新增LuBan多图压缩
-
-20.新增单独拍照功能
-
-项目会一直维护，发现问题欢迎提出~  会第一时间修复哟~  由于加好友的太多 现在集中到QQ群中讨论 619458861，个人联系方式893855882@qq.com  希望用得着的朋友点个start，你们的支持才是我继续下去的动力，在此先谢过~  
-
-另附我的博客地址：http://blog.csdn.net/luck_mw
-
-app-build 引入compile 'com.github.LuckSiege.PictureSelector:picture_library:v1.2.7'  注：之前引入如有报错，请引入最新版本、
-
-项目根目录  
-
-allprojects { 
-
-    repositories { 
-    
-        jcenter() 
-        
-        maven { url 'https://jitpack.io' } 
-        
-    }  
-    
-}  
-
-
-******注：适配android6.0以上拍照问题，请在AndroidManifest.xml中添加标签******  
-
- < provider 
+## CacheClear
+```sh
+ // Include clipped and compressed cache, to be called upon successful upload, type refers to the image or video cache depending on which ofImage or ofVideo you set up note: system sd card permissions are required
+ PictureFileUtils.deleteCacheDirFile(this,type);
+ // Clear all temporary files generated by caching such as compression, clipping, video, and audio
+ PictureFileUtils.deleteAllCacheDirFile(this);
+```
  
-            android:name="android.support.v4.content.FileProvider"
-            
-            android:authorities="${applicationId}.provider"
-            
-            android:exported="false"
-            
-            android:grantUriPermissions="true">
-            
-            < meta-data
-            
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                
-                android:resource="@xml/file_paths" />
-                
- </ provider> 
- 
-         
-******相册参数构造******
+## Preview Image
+```
+// Preview picture can be customized length press save path
+*Prompt .themeStyle(R.style.theme)；Inside the parameters can not be deleted, otherwise crash...
 
-FunctionConfig config = new FunctionConfig();  
+PictureSelector.create(this)
+ .themeStyle(R.style.picture_default_style)
+ .isNotPreviewDownload(true)
+ .loadImageEngine(GlideEngine.createGlideEngine())
+ .openExternalPreview(position, selectList);
 
-config.setType(selectType); 1图片 or 2视频 LocalMediaLoader.TYPE_IMAGE,TYPE_VIDEO  
+```
+## Preview Video
+```sh
+PictureSelector.create(this).externalPictureVideo(video_path);
+```
 
-config.setCopyMode(copyMode); 裁剪比例 默认 1:1 3:4 3:2 16:9 可参考 Constants.COPY_MODEL_1_1  
+## Project use libraries
 
-config.setCompress(isCompress); 是否压缩  
+* PhotoView
+* luban
+* ucrop
 
-config.setMaxSelectNum(maxSelectNum - images.size()); 最大可选数量  
+## Confusion
+```sh
+#PictureSelector 2.0
+-keep class com.luck.picture.lib.** { *; }
 
-config.setSelectMode(selectMode); 2单选 or 1多选 MODE_MULTIPLE MODE_SINGLE  
+#Ucrop
+-dontwarn com.yalantis.ucrop**
+-keep class com.yalantis.ucrop** { *; }
+-keep interface com.yalantis.ucrop** { *; }
 
-config.setShowCamera(isShow); 是否显示相机  
+#Okio
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+```
+## License
+```sh
+   Copyright 2017 Luck
 
-config.setEnablePreview(enablePreview); 是否预览  
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-config.setEnableCrop(enableCrop); 是否裁剪  
+       http://www.apache.org/licenses/LICENSE-2.0
 
-config.setPreviewVideo(isPreviewVideo); 是否预览视频(播放)  
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+```
 
-config.setCropW(cropW); 裁剪宽  
+## Contact
+Android Group 1 [619458861]() (biggest) <br>
+Android Group 2 [679824206]() (biggest) <br>
+Android Group 3 [854136996]() (biggest) <br>
+QQ [893855882]() <br>
 
-config.setCropH(cropH); 裁剪高  
 
-config.setRecordVideoDefinition(Constants.HIGH); // 视频清晰度 Constants.HIGH 清晰 Constants.ORDINARY 普通 低质量  
+## Effect
 
-config.setRecordVideoSecond(60);// 视频秒数  
+| Single Mode | Mixed Mode |
+|:-----------:|:-----------:|
+|![](image/home.jpg)|![](image/home_mixed.jpg)| 
 
-config.setCheckNumMode(isCheckNumMode); 是否显示QQ选择风格(带数字效果)  
+| Default Style | Preview | Multiple Crop |
+|:-----------:|:--------:|:---------:|
+|![](image/picture_default_style_1.jpg) | <img src="image/picture_default_style_2.jpg"/> | ![](image/picture_default_style_new_3.jpg)|  
 
-config.setPreviewColor 预览文字颜色  
+| Digital Style | Preview | Multiple Crop |
+|:-----------:|:--------:|:---------:|
+|![](image/picture_num_style_new_1.jpg) | ![](image/picture_num_style_new_2.jpg) | ![](image/picture_num_style_new_3.jpg)| 
 
-config.setCompleteColor 完成文字颜色 
+| White Style | Preview | Single Crop |
+|:-----------:|:--------:|:---------:|
+|![](image/picture_sina_style_1.jpg) | ![](image/picture_sina_style_new_2.jpg) | ![](image/picture_sina_style_new_3.jpg)| 
 
-config.setPreviewBottomBgColor 预览界面底部背景色  
+| New Style | Preview | Multiple Crop |
+|:-----------:|:--------:|:---------:|
+|![](image/picture_wechat_style_1.jpg) | ![](image/picture_wechat_style_2.jpg) | ![](image/picture_wechat_style_new_3.jpg)| 
 
-config.setBottomBgColor 选择图片页面底部背景色  
+| Photo Album Directory | Single Mode | Circular Crop|
+|:-----------:|:--------:|:--------:|
+|![](image/picture_wechat_album_style.jpg) |![](image/picture_wechat_single_style_3.jpg) | ![](image/picture_circular_crop_new_style.jpg)| 
 
-config.options.setSelectMedia() 已选图片集合  
+| White Style | Video | Audio |
+|:-----------:|:-----------:|:--------:|
+|![](image/picture_white_style.jpeg) |![](image/picture_video.jpg) | ![](image/picture_audio.jpg)| 
 
-config.setCompressFlag(compressFlag); // 1是系统自带压缩 2是鲁班压缩
 
-config.setCompressW(compressW); //Luban压缩宽
-
-config.setCompressH(compressH); //Luban压缩高
-
-// 先初始化参数配置，在启动相册  
-
-PictureConfig.init(config);  
-
-// 启动相册并设置回调函数  
-
-PictureConfig.getPictureConfig.openPhoto(MainActivity.this, resultCallback); 
-
-// 单独启动相机拍照
-
-PictureConfig.getPictureConfig().startOpenCamera(mContext, resultCallback);
-
-// 外部预览图片方法 (例如选完后要预览的可调用此方法)
-
-PictureConfig.getPictureConfig.externalPicturePreview(this, position, selectMedia);
-
-/**
-  * 图片回调方法
- */
-
-private PictureConfig.OnSelectResultCallback resultCallback = new PictureConfig.OnSelectResultCallback() {  
-
-    @Override
-    
-    public void onSelectSuccess(List< LocalMedia> resultList) {  
-            if (media.isCompressed()){  
-            // 注意：如果压缩过，在上传的时候，取 media.getCompressPath(); // 压缩图compressPath  
-            } else {  
-            // 注意：没有压缩过，在上传的时候，取 media.getPath(); // 原图path  
-            } else{
-            
-            // 注意：如果media.getCatPath();不为空的话 就代表裁剪的图片，上传时可取，但是如果又压缩过，则取最终压缩过的compressPath  
-            
-            }
-            
-            selectMedia = resultList;  
-            
-            if (selectMedia != null) {  
-            
-                adapter.setList(selectMedia);  
-                
-                adapter.notifyDataSetChanged();  
-                
-            }  
-        }  
-  };  
-  
-
-  
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/A574F86A9A9F42A77D03B0ACC9E761C9.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/ABE302D298BD56DEC871F4464E64646F.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/3483AB11C78AF4C6DCC408504768A138.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/66C119A6BD918EAF9418324836C34BA6.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/new_image.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/5F1513BFD9490AF153E3E30840964FB1.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/BA7C4A038613182020DA9CE0152DA5D4.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/0F918EB15954836F59A95A3F7E0D2012.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/2AEDE4E52CC095F5896E066C59DDDF85.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/36C818DEDF2A5AA745CD699FBBF67E7F.jpg)
-![image](https://github.com/LuckSiege/PictureSelector/blob/master/image/9B433C9C47C3FCA7BC42D6E3B6F27698.jpg)
